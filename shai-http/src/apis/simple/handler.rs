@@ -2,7 +2,7 @@ use axum::{
     extract::{Path, State},
     response::{IntoResponse, Response, Sse},
 };
-use shai_llm::{ChatMessage, ChatMessageContent, ToolCall as LlmToolCall, Function};
+use openai_dive::v1::resources::chat::{ChatMessage, ChatMessageContent, ToolCall as LlmToolCall, Function};
 use tracing::info;
 use uuid::Uuid;
 
@@ -124,7 +124,7 @@ fn build_message_trace(query: &MultiModalQuery) -> Vec<ChatMessage> {
                         .unwrap_or_else(|| "No result".to_string());
 
                     trace.push(ChatMessage::Tool {
-                        content: tool_result_text,
+                        content: ChatMessageContent::Text(tool_result_text),
                         tool_call_id,
                     });
                 }

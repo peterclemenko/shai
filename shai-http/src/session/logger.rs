@@ -11,48 +11,47 @@ fn color_for_session(session_id: &str) -> u8 {
     16 + (hash % 216) as u8
 }
 
-fn colored_session_id(session_id: &str) -> String {
+pub fn colored_session_id(session_id: &str) -> String {
     let color = color_for_session(session_id);
-    format!("\x1b[38;5;{}m{}\x1b[0m", color, session_id)
+    format!("\x1b[38;5;{}msid={}\x1b[0m", color, session_id)
 }
-
 
 pub fn log_event(event: &AgentEvent, session_id: &str) {
     let session_id = colored_session_id(session_id);
     match event {
         AgentEvent::ToolCallStarted { call, .. } => {
-            debug!("[{}] - ToolCall: {}", session_id, call.tool_name);
+            debug!("{} - ToolCall: {}", session_id, call.tool_name);
         }
         AgentEvent::ToolCallCompleted { call, result, duration, .. } => {
             use shai_core::tools::ToolResult;
             match result {
                 ToolResult::Success { .. } => {
-                    debug!("[{}] - ToolResult: {} ✓ ({}ms)", 
+                    debug!("{} - ToolResult: {} ✓ ({}ms)", 
                         session_id, call.tool_name, duration.num_milliseconds());
                 }
                 ToolResult::Error { error, .. } => {
                     let error_oneline = error.lines().next().unwrap_or(error);
-                    debug!("[{}] - ToolResult: {} ✗ {}", 
+                    debug!("{} - ToolResult: {} ✗ {}", 
                         session_id, call.tool_name, error_oneline);
                 }
                 ToolResult::Denied => {
-                    debug!("[{}] - ToolResult: {} ⊘ denied", 
+                    debug!("{} - ToolResult: {} ⊘ denied", 
                         session_id, call.tool_name);
                 }
             }
         }
         AgentEvent::BrainResult { .. } => {
-            debug!("[{}] - BrainResult", session_id);
+            debug!("{} - BrainResult", session_id);
         }
         AgentEvent::StatusChanged { old_status, new_status } => {
-            debug!("[{}] - Status: {:?} ← {:?}", 
+            debug!("{} - Status: {:?} ← {:?}", 
                 session_id, new_status, old_status);
         }
         AgentEvent::Error { error } => {
-            error!("[{}] - Error: {}", session_id, error);
+            error!("{} - Error: {}", session_id, error);
         }
         AgentEvent::Completed { success, message } => {
-            info!("[{}] - Completed: success={} msg={}", 
+            info!("{} - Completed: success={} msg={}", 
                 session_id, success, message);
         }
         _ => {}

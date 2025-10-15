@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use openai_dive::v1::resources::chat::ChatCompletionParametersBuilder;
-use shai_llm::{client::LlmClient, ChatMessage, ChatMessageContent};
+use openai_dive::v1::resources::chat::{ChatCompletionParametersBuilder, ChatMessage, ChatMessageContent};
+use shai_llm::client::LlmClient;
 use async_trait::async_trait;
 use tracing::debug;
 

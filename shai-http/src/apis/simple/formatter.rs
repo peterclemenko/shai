@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use shai_core::agent::AgentEvent;
-use shai_llm::{ChatMessage, ChatMessageContent};
+use openai_dive::v1::resources::chat::{ChatMessage, ChatMessageContent};
 use std::collections::HashMap;
 
 use super::types::{MultiModalStreamingResponse, ToolCall, ToolCallResult};

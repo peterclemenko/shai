@@ -5,7 +5,7 @@ use tokio::sync::Mutex;
 use tracing::{error, info};
 
 use shai_core::agent::AgentBuilder;
-use crate::session::log_event;
+use crate::session::{log_event, logger::colored_session_id};
 
 use super::AgentSession;
 
@@ -51,7 +51,7 @@ impl SessionManager {
         agent_name: Option<String>,
         ephemeral: bool,
     ) -> Result<Arc<AgentSession>, AgentError> {
-        info!("[{}] - [{}] Creating new session", http_request_id, session_id);
+        info!("[{}] - {} Creating new session", http_request_id, colored_session_id(session_id));
 
         // Build the agent
         let mut agent = AgentBuilder::create(agent_name.clone().filter(|name| name != "default"))
@@ -78,14 +78,14 @@ impl SessionManager {
         let agent_task = tokio::spawn(async move {
             match agent.run().await {
                 Ok(_) => {
-                    info!("[] - [{}] Agent completed successfully", sid_for_cleanup);
+                    info!("{} - Agent Terminated", colored_session_id(&sid_for_cleanup));
                 }
                 Err(e) => {
-                    error!("[] - [{}] Agent execution error: {}", sid_for_cleanup, e);
+                    error!("{} - Agent execution error: {}", colored_session_id(&sid_for_cleanup), e);
                 }
             }
             sessions_for_cleanup.lock().await.remove(&sid_for_cleanup);
-            info!("[] - [{}] session removed from manager", sid_for_cleanup);
+            info!("{} - Session removed from manager", colored_session_id(&sid_for_cleanup));
         });
 
         let session = Arc::new(AgentSession::new(
@@ -111,7 +111,7 @@ impl SessionManager {
         let sessions = self.sessions.lock().await;
 
         if let Some(session) = sessions.get(session_id) {
-            info!("[{}] - [{}] Using existing session", http_request_id, session_id);
+            info!("[{}] - {} Using existing session", http_request_id, colored_session_id(&session_id));
             Ok(session.clone())
         } else {
             Err(AgentError::ExecutionError(format!(

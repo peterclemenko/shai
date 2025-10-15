@@ -1,4 +1,5 @@
-use shai_llm::{ToolCallMethod, ChatMessage};
+use openai_dive::v1::resources::chat::ChatMessage;
+use shai_llm::ToolCallMethod;
 use tokio::sync::{mpsc, oneshot};
 use tokio::time::{timeout, Duration};
 use crate::agent::AgentError;

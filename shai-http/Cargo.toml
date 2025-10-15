@@ -32,5 +32,5 @@ thiserror = "2.0"
 anyhow = "1.0"
 
 # OpenAI types
-openai_dive = "1.2"
+openai_dive = { git = "https://github.com/Marlinski/openai-client", branch = "feature/streaming-api-response" }
 chrono = { version = "0.4", features = ["serde"] }

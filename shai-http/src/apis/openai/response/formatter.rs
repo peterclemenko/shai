@@ -8,8 +8,8 @@ use openai_dive::v1::resources::response::{
     },
 };
 use openai_dive::v1::resources::shared::Usage;
+use openai_dive::v1::resources::chat::{ChatMessage, ChatMessageContent};
 use shai_core::agent::AgentEvent;
-use shai_llm::{ChatMessage, ChatMessageContent};
 use uuid::Uuid;
 
 use super::types::ResponseStreamEvent;

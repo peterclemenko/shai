@@ -8,7 +8,8 @@ use shai_core::config::config::ShaiConfig;
 use shai_core::config::agent::AgentConfig;
 use shai_core::runners::coder::coder::CoderBrain;
 use shai_core::runners::searcher::searcher::SearcherBrain;
-use shai_llm::{ChatMessage, ChatMessageContent, LlmClient};
+use openai_dive::v1::resources::chat::{ChatMessage, ChatMessageContent};
+use shai_llm::LlmClient;
 
 pub enum AgentKind {
     Coder,

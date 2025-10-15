@@ -1,9 +1,11 @@
 use shai_core::agent::{AgentController, AgentError, AgentEvent};
-use shai_llm::ChatMessage;
+use openai_dive::v1::resources::chat::ChatMessage;
 use std::sync::Arc;
 use tokio::sync::{broadcast::Receiver, Mutex};
 use tokio::task::JoinHandle;
 use tracing::info;
+use crate::session::logger::colored_session_id;
+
 use super::RequestLifecycle;
 
 
@@ -56,7 +58,7 @@ impl AgentSession {
     /// Terminate a session
     pub async fn cancel(&self, http_request_id: &String)  -> Result<(), AgentError> {
         let ctrl = self.controller.clone().lock_owned().await;
-        info!("[{}] - [{}] cancelling session", http_request_id, self.session_id);
+        info!("[{}] - {} cancelling session", http_request_id, colored_session_id(&self.session_id));
         ctrl.terminate().await
     }
 
@@ -71,7 +73,7 @@ impl AgentSession {
     pub async fn handle_request(&self, http_request_id: &String, trace: Vec<ChatMessage>) -> Result<RequestSession, AgentError> {
         let controller_guard = self.controller.clone().lock_owned().await;
         controller_guard.wait_turn(None).await?;
-        info!("[{}] - [{}] handling request", http_request_id, self.session_id);
+        info!("[{}] - {} handling request", http_request_id, colored_session_id(&self.session_id));
 
         controller_guard.send_trace(trace).await?;
 

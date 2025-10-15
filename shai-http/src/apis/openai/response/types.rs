@@ -8,7 +8,7 @@ use openai_dive::v1::resources::response::{
     request::{ContentInput, ContentItem, ResponseInput, ResponseInputItem, ResponseParameters},
     response::{ResponseObject, ResponseOutput, Role},
 };
-use shai_llm::{ChatMessage, ChatMessageContent};
+use openai_dive::v1::resources::chat::{ChatMessage, ChatMessageContent};
 
 /// Base streaming event structure
 #[derive(Serialize, Deserialize, Debug, Clone)]

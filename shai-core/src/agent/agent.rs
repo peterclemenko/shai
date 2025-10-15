@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use std::boxed::Box;
-use shai_llm::{ChatMessage, ChatMessageContent, ToolCallMethod};
+use openai_dive::v1::resources::chat::{ChatMessage, ChatMessageContent};
+use shai_llm::ToolCallMethod;
 use tokio::sync::{mpsc, broadcast, RwLock, oneshot};
 use serde::{Serialize, Deserialize};
 use async_trait::async_trait;

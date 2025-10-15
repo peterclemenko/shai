@@ -1,4 +1,5 @@
-use shai_llm::{ChatMessage, LlmClient};
+use openai_dive::v1::resources::chat::{ChatMessage, ChatMessageContent};
+use shai_llm::LlmClient;
 use uuid::Uuid;
 use std::sync::Arc;
 
@@ -125,7 +126,7 @@ impl AgentBuilder {
     /// Build the AgentCore with required runtime fields
     pub fn build(mut self) -> AgentCore {        
         if let Some(goal) = self.goal {
-            self.trace.push(ChatMessage::User { content: shai_llm::ChatMessageContent::Text(goal.clone()), name: None });
+            self.trace.push(ChatMessage::User { content: ChatMessageContent::Text(goal.clone()), name: None });
         }
 
 

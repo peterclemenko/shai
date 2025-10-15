@@ -8,6 +8,7 @@ edition = "2021"
 shai-core = { path = "../shai-core" }
 shai-llm = { path = "../shai-llm" }
 shai-http = { path = "../shai-http" }
+openai_dive = { git = "https://github.com/Marlinski/openai-client", branch = "feature/streaming-api-response" }
 chrono = "0.4"
 clap = { version = "4.0", features = ["derive"] }
 tempfile = "3.20.0"

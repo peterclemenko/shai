@@ -1,11 +1,10 @@
 use async_trait::async_trait;
 use openai_dive::v1::resources::chat::{
     ChatCompletionChunkResponse, ChatCompletionChunkChoice, DeltaChatMessage,
-    ChatMessageContent,
+    ChatMessageContent, ChatMessage,
 };
 use openai_dive::v1::resources::shared::FinishReason;
 use shai_core::agent::AgentEvent;
-use shai_llm::{ChatMessage, ChatMessageContent as LlmChatMessageContent};
 use uuid::Uuid;
 
 use crate::streaming::EventFormatter;
@@ -64,7 +63,7 @@ impl EventFormatter for ChatCompletionFormatter {
             AgentEvent::BrainResult { thought, .. } => {
                 if let Ok(msg) = thought {
                     if let ChatMessage::Assistant {
-                        content: Some(LlmChatMessageContent::Text(text)),
+                        content: Some(ChatMessageContent::Text(text)),
                         ..
                     } = msg
                     {

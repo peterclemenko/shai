@@ -1,6 +1,8 @@
 use shai_core::agent::AgentController;
 use tokio::sync::OwnedMutexGuard;
-use tracing::debug;
+use tracing::info;
+
+use crate::session::logger::colored_session_id;
 
 
 pub enum RequestLifecycle {
@@ -29,17 +31,17 @@ impl Drop for RequestLifecycle {
     fn drop(&mut self) {
         match self {
             Self::Background { request_id, session_id, .. } => {
-                debug!(
-                    "[{}] - [{}] Stream completed, releasing controller lock (background session)",
+                info!(
+                    "[{}] - {} Stream completed, releasing controller lock (background session)",
                     request_id,
-                    session_id
+                    colored_session_id(session_id)
                 );
             }
             Self::Ephemeral { controller_guard, request_id, session_id } => {
-                debug!(
-                    "[{}] - [{}] Stream completed, destroying agent (ephemeral session)",
+                info!(
+                    "[{}] - {} Stream completed, destroying agent (ephemeral session)",
                     request_id,
-                    session_id
+                    colored_session_id(session_id)
                 );
 
                 // Clone before moving into async task
