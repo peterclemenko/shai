@@ -3,6 +3,7 @@ use std::fs;
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use reqwest::Url;
+use json_comments::StripComments;
 use serde::{Serialize, Deserialize};
 use shai_llm::{LlmClient, ToolCallMethod};
 use crate::tools::mcp::McpConfig;
@@ -90,9 +91,10 @@ impl ShaiConfig {
             return Err("config file does not exist".into());
         }
 
-        let content = fs::read_to_string(config_path)?;
-        let mut config: ShaiConfig = serde_json::from_str(&content)?;
-        
+        let content_bytes = fs::read(config_path)?;
+        let content_stripped = StripComments::new(&content_bytes[..]);
+        let mut config: ShaiConfig = serde_json::from_reader(content_stripped)?;
+
         // Validate selected_provider index
         if config.providers.is_empty() {
             config.selected_provider = 0;
