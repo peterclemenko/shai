@@ -61,17 +61,30 @@ impl EventFormatter for ChatCompletionFormatter {
         match event {
             // Capture assistant messages from brain results
             AgentEvent::BrainResult { thought, .. } => {
-                if let Ok(msg) = thought {
-                    if let ChatMessage::Assistant {
-                        content: Some(ChatMessageContent::Text(text)),
-                        ..
-                    } = msg
-                    {
-                        // Accumulate the text for final response
-                        self.accumulated_text = text;
+                match thought {
+                    Ok(msg) => {
+                        if let ChatMessage::Assistant {
+                            content: Some(ChatMessageContent::Text(text)),
+                            ..
+                        } = msg
+                        {
+                            // Accumulate the text for final response
+                            self.accumulated_text = text;
+                        }
+                        None
+                    }
+                    Err(err) => {
+                        // Stream error as assistant message
+                        let delta = DeltaChatMessage::Assistant {
+                            content: Some(ChatMessageContent::Text(format!("Error: {}", err))),
+                            reasoning_content: None,
+                            refusal: None,
+                            name: None,
+                            tool_calls: None,
+                        };
+                        Some(self.create_chunk(delta, Some(FinishReason::StopSequenceReached)))
                     }
                 }
-                None
             }
 
             // Tool call started - stream as thinking delta

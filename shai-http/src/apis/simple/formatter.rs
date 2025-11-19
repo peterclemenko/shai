@@ -28,27 +28,39 @@ impl EventFormatter for SimpleFormatter {
     ) -> Option<Self::Output> {
         match event {
             AgentEvent::BrainResult { thought, .. } => {
-                if let Ok(msg) = thought {
-                    // Extract text content from the ChatMessage
-                    let text_content = match &msg {
-                        ChatMessage::Assistant {
-                            content: Some(ChatMessageContent::Text(text)),
-                            ..
-                        } => Some(text.clone()),
-                        _ => None,
-                    };
+                match thought {
+                    Ok(msg) => {
+                        // Extract text content from the ChatMessage
+                        let text_content = match &msg {
+                            ChatMessage::Assistant {
+                                content: Some(ChatMessageContent::Text(text)),
+                                ..
+                            } => Some(text.clone()),
+                            _ => None,
+                        };
 
-                    if let Some(text) = text_content {
-                        return Some(MultiModalStreamingResponse {
+                        if let Some(text) = text_content {
+                            return Some(MultiModalStreamingResponse {
+                                id: session_id.to_string(),
+                                model: self.model.clone(),
+                                assistant: Some(text),
+                                call: None,
+                                result: None,
+                            });
+                        }
+                        None
+                    }
+                    Err(err) => {
+                        // Format error as assistant message
+                        Some(MultiModalStreamingResponse {
                             id: session_id.to_string(),
                             model: self.model.clone(),
-                            assistant: Some(text),
+                            assistant: Some(format!("Error: {}", err)),
                             call: None,
                             result: None,
-                        });
+                        })
                     }
                 }
-                None
             }
             AgentEvent::ToolCallStarted { call, .. } => Some(MultiModalStreamingResponse {
                 id: session_id.to_string(),

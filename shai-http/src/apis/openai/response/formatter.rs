@@ -114,13 +114,19 @@ impl EventFormatter for ResponseFormatter {
         match event {
             // Capture assistant messages from brain results
             AgentEvent::BrainResult { thought, .. } => {
-                if let Ok(msg) = thought {
-                    if let ChatMessage::Assistant {
-                        content: Some(ChatMessageContent::Text(text)),
-                        ..
-                    } = msg
-                    {
-                        self.accumulated_text = text;
+                match thought {
+                    Ok(msg) => {
+                        if let ChatMessage::Assistant {
+                            content: Some(ChatMessageContent::Text(text)),
+                            ..
+                        } = msg
+                        {
+                            self.accumulated_text = text;
+                        }
+                    }
+                    Err(err) => {
+                        // Accumulate error message as text
+                        self.accumulated_text = format!("Error: {}", err);
                     }
                 }
                 None
