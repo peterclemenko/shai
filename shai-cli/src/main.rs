@@ -137,11 +137,14 @@ enum Commands {
         /// Port to bind to
         #[arg(short, long, default_value = "3000")]
         port: u16,
-        /// Agent name to use for persistent session (optional)
+        /// Agent name to serve (optional)
         agent: Option<String>,
         /// Use ephemeral mode (spawn new agent per request)
         #[arg(long)]
         ephemeral: bool,
+        /// Maximum number of concurrent sessions (None = unlimited)
+        #[arg(long)]
+        max_sessions: Option<usize>,
     }
 }
 
@@ -179,8 +182,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let command_str = command.join(" ");
             handle_postcmd(exit_code, command_str).await?;
         },
-        Some(Commands::Serve { host, port, agent, ephemeral }) => {
-            handle_serve(host, port, agent, ephemeral).await?;
+        Some(Commands::Serve { host, port, agent, ephemeral, max_sessions }) => {
+            handle_serve(host, port, agent, ephemeral, max_sessions).await?;
         },
         None => {
             // Check for stdin input or trailing arguments
@@ -467,7 +470,7 @@ pub async fn handle_postcmd(exit_code: i32, command: String) -> Result<(), Box<d
     Ok(())
 }
 
-async fn handle_serve(host: String, port: u16, agent: Option<String>, ephemeral: bool) -> Result<(), Box<dyn std::error::Error>> {
+async fn handle_serve(host: String, port: u16, agent: Option<String>, ephemeral: bool, max_sessions: Option<usize>) -> Result<(), Box<dyn std::error::Error>> {
     // Initialize tracing for HTTP server logs
     tracing_subscriber::fmt()
         .with_target(false)
@@ -480,7 +483,7 @@ async fn handle_serve(host: String, port: u16, agent: Option<String>, ephemeral:
     let addr = format!("{}:{}", host, port);
     let config = shai_http::ServerConfig::new(addr)
         .with_ephemeral(ephemeral)
-        .with_max_sessions(Some(1));
+        .with_max_sessions(max_sessions);
 
     shai_http::start_server(config).await?;
 

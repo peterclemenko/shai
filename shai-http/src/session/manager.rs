@@ -166,6 +166,13 @@ impl SessionManager {
         agent_name: Option<String>,
         ephemeral: bool,
     ) -> Result<Arc<AgentSession>, AgentError> {
+        // Check if ephemeral-only mode is enforced
+        if self.ephemeral && !ephemeral {
+            return Err(AgentError::ExecutionError(format!(
+                "Only Ephemeral session are authorized on this server"
+            )));
+        }
+
         let mut sessions = self.sessions.lock().await;
 
         // Check if session already exists
@@ -176,7 +183,7 @@ impl SessionManager {
             )));
         }
 
-        // Check max sessions limit
+        // Check max sessions limit (counts both ephemeral and non-ephemeral)
         if let Some(max) = self.max_sessions {
             if sessions.len() >= max {
                 return Err(AgentError::ExecutionError(format!(
@@ -186,14 +193,9 @@ impl SessionManager {
             }
         }
 
-         // Check max sessions limit
-        if self.ephemeral && !ephemeral {
-            return Err(AgentError::ExecutionError(format!(
-                "Only Ephemeral session are authorized on this server"
-            )));
-        }
-
         let session = self.create_session(&http_request_id.to_string(), session_id, agent_name, ephemeral, None).await?;
+
+        // Store all sessions in hashmap (ephemeral sessions will be automatically cleaned up when agent terminates)
         sessions.insert(session_id.to_string(), session.clone());
 
         Ok(session)
