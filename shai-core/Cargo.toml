@@ -16,6 +16,7 @@ futures = "0.3"
 termimad = "0.34"
 tree-sitter = "0.25"
 tree-sitter-highlight = "0.25"
+json_comments = "0.2.2"
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"

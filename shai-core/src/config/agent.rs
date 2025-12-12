@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
+use json_comments::StripComments;
 use serde::{Serialize, Deserialize};
 use shai_llm::ToolCallMethod;
 use crate::tools::mcp::McpConfig;
@@ -121,8 +122,9 @@ impl AgentConfig {
             return Err(format!("Agent config '{}' does not exist", agent_name).into());
         }
 
-        let content = std::fs::read_to_string(config_path)?;
-        let config: AgentConfig = serde_json::from_str(&content)?;
+        let content_bytes = std::fs::read(config_path)?;
+        let content_stripped = StripComments::new(&content_bytes[..]);
+        let config: AgentConfig = serde_json::from_reader(content_stripped)?;
         Ok(config)
     }
 
