@@ -226,16 +226,41 @@ impl AgentBuilder {
         // Add MCP tools
         let mut config_changed = false;
         for (mcp_name, mcp_tool_config) in &mut config.tools.mcp {
-            let oauth_changed = Self::mcp_check_oauth(mcp_name, &mut mcp_tool_config.config).await?;
-            if oauth_changed {
-                config_changed = true;
+            // Try to check OAuth and connect
+            let oauth_result = Self::mcp_check_oauth(mcp_name, &mut mcp_tool_config.config).await;
+
+            match oauth_result {
+                Ok(oauth_changed) => {
+                    if oauth_changed {
+                        config_changed = true;
+                    }
+                }
+                Err(e) => {
+                    if mcp_tool_config.required {
+                        return Err(e);
+                    } else {
+                        eprintln!("\x1b[2m⚠ MCP '{}' failed to connect: {}. Skipping (not required).\x1b[0m", mcp_name, e);
+                        continue;
+                    }
+                }
             }
 
             // Get all tools from MCP client
             let mcp_client = create_mcp_client(mcp_tool_config.config.clone());
-            let all_mcp_tools = get_mcp_tools(mcp_client, mcp_name).await
-                .map_err(|e| AgentError::ConfigurationError(format!("Failed to get tools from MCP '{}': {}", mcp_name, e)))?;
-            
+            let mcp_tools_result = get_mcp_tools(mcp_client, mcp_name).await;
+
+            let all_mcp_tools = match mcp_tools_result {
+                Ok(tools) => tools,
+                Err(e) => {
+                    if mcp_tool_config.required {
+                        return Err(AgentError::ConfigurationError(format!("Failed to get tools from MCP '{}': {}", mcp_name, e)));
+                    } else {
+                        eprintln!("\x1b[2m⚠ MCP '{}' failed to get tools: {}. Skipping (not required).\x1b[0m", mcp_name, e);
+                        continue;
+                    }
+                }
+            };
+
             // Check if we should add all tools or filter by enabled_tools
             if mcp_tool_config.enabled_tools.contains(&"*".to_string()) {
                 // Add all tools from this MCP client (except excluded ones)
@@ -253,12 +278,16 @@ impl AgentBuilder {
                         tools.push(tool);
                     }
                 }
-                
+
                 // Check if all enabled tools were found (only when not using wildcard)
                 for enabled_tool in &mcp_tool_config.enabled_tools {
                     let found = tools.iter().any(|t| t.name() == *enabled_tool);
                     if !found {
-                        return Err(AgentError::ConfigurationError(format!("Tool '{}' not found in MCP client '{}'", enabled_tool, mcp_name)));
+                        if mcp_tool_config.required {
+                            return Err(AgentError::ConfigurationError(format!("Tool '{}' not found in MCP client '{}'", enabled_tool, mcp_name)));
+                        } else {
+                            eprintln!("\x1b[2m⚠ Tool '{}' not found in MCP client '{}'. Skipping (not required).\x1b[0m", enabled_tool, mcp_name);
+                        }
                     }
                 }
             }

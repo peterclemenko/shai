@@ -21,6 +21,10 @@ pub struct McpToolConfig {
     pub enabled_tools: Vec<String>,
     #[serde(default)]
     pub excluded_tools: Vec<String>,
+    /// Whether this MCP server is required to start successfully (default: false)
+    /// If false, connection errors will be logged as warnings and agent will continue
+    #[serde(default)]
+    pub required: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
